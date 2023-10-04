@@ -16,7 +16,7 @@
 In search.py, you will implement generic search algorithms which are called by
 Pacman agents (in searchAgents.py).
 """
-
+from util import Stack, Queue, PriorityQueue
 import util
 
 class SearchProblem:
@@ -82,12 +82,54 @@ def depthFirstSearch(problem: SearchProblem):
     To get started, you might want to try some of these simple commands to
     understand the search problem that is being passed in:
     """
-    print("Start:", problem.getStartState())
-    print("Is the start a goal?", problem.isGoalState(problem.getStartState()))
-    print("Start's successors:", problem.getSuccessors(problem.getStartState()))
+    #print("Start:", problem.getStartState())
+    #print("Is the start a goal?", problem.isGoalState(problem.getStartState()))
+    #print("Start's successors:", problem.getSuccessors(problem.getStartState()))
     """
     "*** YOUR CODE HERE ***"
     """
+    #get start state
+    current = problem.getStartState()
+    #create frontier
+    frontier = Stack()
+    visited = Stack()  
+    actionlist = [] 
+    
+    print(frontier.list)
+    print(frontier.isEmpty())
+    
+    frontier.push(current)
+    print(frontier.list)
+    print(frontier.isEmpty())
+    
+    frontier.pop()
+    print(frontier.list) 
+    print(frontier.isEmpty())
+
+    #print(len(frontier.list) == 0)
+    #print(problem.getSuccessors(current)[0][0]) 
+    frontier.push(current)
+    
+    
+    #if stack is not empty
+    while not frontier.isEmpty():
+        #pop item from stack, put it in visited
+        current = frontier.pop()
+        visited.push(current)
+        #print("frontier: ", frontier.list)
+        #print("visited: ", visited.list)
+        #print("current ", current)
+        
+        #get the adjacent nodes from current and add them to the frontier
+        successors = problem.getSuccessors(current)
+        #print(successors)
+        for state, action, cost in successors:
+            if state not in visited.list:
+                frontier.push(state)
+        #print("new frontier", frontier.list)
+        
+    print(visited.list)
+
     util.raiseNotDefined()
 
 def breadthFirstSearch(problem: SearchProblem):
