@@ -88,50 +88,79 @@ def depthFirstSearch(problem: SearchProblem):
     """
     "*** YOUR CODE HERE ***"
     """
+    from game import Directions
+    n = Directions.NORTH
+    s = Directions.SOUTH
+    e = Directions.EAST
+    w = Directions.WEST
+
     #get start state
-    current = problem.getStartState()
+
+    start = problem.getStartState()
+    current = start
+    current = (current, None)
     #create frontier
     frontier = Stack()
+    frontierActions = []
+    moves = []
+    parents = {}
     visited = Stack()  
-    actionlist = [] 
-    
-    print(frontier.list)
-    print(frontier.isEmpty())
-    
-    frontier.push(current)
-    print(frontier.list)
-    print(frontier.isEmpty())
-    
-    frontier.pop()
-    print(frontier.list) 
-    print(frontier.isEmpty())
 
-    #print(len(frontier.list) == 0)
-    #print(problem.getSuccessors(current)[0][0]) 
+    #push the starting place to the frontier
     frontier.push(current)
     
     
     #if stack is not empty
     while not frontier.isEmpty():
-        #pop item from stack, put it in visited
+        if problem.isGoalState(current[0]):
+            goalstate = current[0]
+            break
+            
         current = frontier.pop()
-        visited.push(current)
-        #print("frontier: ", frontier.list)
-        #print("visited: ", visited.list)
-        #print("current ", current)
+        visited.push(current[0])        
         
         #get the adjacent nodes from current and add them to the frontier
-        successors = problem.getSuccessors(current)
-        #print(successors)
-        for state, action, cost in successors:
-            if state not in visited.list:
-                frontier.push(state)
-        #print("new frontier", frontier.list)
+        successors = problem.getSuccessors(current[0])
         
-    print(visited.list)
+        for state, action, cost in successors:
+            pair = (state, action)
+            
+            if state not in visited.list:
+                frontier.push(pair)   
+                parents[state] = current[0] 
+        
+    moves.append(goalstate)
+    while goalstate != start:
+        action = parents[goalstate]
+        moves.append(action)
+        goalstate = parents[goalstate]
+    
+    print(moves)
+    for i in range(0, len(moves)):
+        if i != len(moves) - 1:
+            next = i + 1
+        frontierActions.append(directionTaken(moves[next], moves[i]))
+    
+    frontierActions.reverse()
+    frontierActions.pop(0) # remove the null from the start of frontier actions
+        
+    return frontierActions
 
     util.raiseNotDefined()
 
+def directionTaken(positionOne, positionTwo):
+    """Takes two positions from the maze and returns the direction from positionOne -> positionTwo"""
+    if (positionOne[0] - positionTwo[0] == 1):
+        return 'West'
+    elif (positionOne[0] - positionTwo[0] == -1):
+        return 'East'
+    elif (positionOne[1] - positionTwo[1] == 1):
+        return 'South'
+    elif (positionOne[1] - positionTwo[1] == -1):
+        return 'North'
+    else: 
+        return 'Error'
+    
 def breadthFirstSearch(problem: SearchProblem):
     """Search the shallowest nodes in the search tree first."""
     "*** YOUR CODE HERE ***"
