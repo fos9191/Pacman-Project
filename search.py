@@ -73,27 +73,6 @@ def tinyMazeSearch(problem):
     return  [s, s, w, s, w, w, s, w]
 
 def depthFirstSearch(problem: SearchProblem):
-    """
-    Search the deepest nodes in the search tree first.
-
-    Your search algorithm needs to return a list of actions that reaches the
-    goal. Make sure to implement a graph search algorithm.
-
-    To get started, you might want to try some of these simple commands to
-    understand the search problem that is being passed in:
-    """
-    #print("Start:", problem.getStartState())
-    #print("Is the start a goal?", problem.isGoalState(problem.getStartState()))
-    #print("Start's successors:", problem.getSuccessors(problem.getStartState()))
-    """
-    "*** YOUR CODE HERE ***"
-    """
-    from game import Directions
-    n = Directions.NORTH
-    s = Directions.SOUTH
-    e = Directions.EAST
-    w = Directions.WEST
-
     #get start state
     actions = []
     start = problem.getStartState()
@@ -102,10 +81,9 @@ def depthFirstSearch(problem: SearchProblem):
     visited = Stack()
     parents = {}
     
-    
+    print("start", start)
     #push the first node to the frontier stack
     frontier.push(current)
-    print(start)
     
     while not frontier.isEmpty():
         #take the next node from the frontier and put it in the visited list
@@ -114,7 +92,6 @@ def depthFirstSearch(problem: SearchProblem):
         
         #if we are at the goal state, finish searching
         if problem.isGoalState(current[0]):
-            goal = current[0]
             break
 
         #find its successors. if any are not in the visited list then add them to the frontier
@@ -142,7 +119,76 @@ def depthFirstSearch(problem: SearchProblem):
         
     return actions
     util.raiseNotDefined()
+
     
+def breadthFirstSearch(problem: SearchProblem):
+    frontier = Queue()
+    visited = Queue()
+    parents = {}
+    actions = []
+    start = problem.getStartState()
+    current = (start, None)
+    
+    #start by pushing the start location into the frontier
+    frontier.push(current)
+    
+    #while we still have positions to search
+    while not frontier.isEmpty():
+        current = frontier.pop()
+        #if there are other nodes in the frontier that are the same as current, remove them.
+        #this is cuz we have already found the fastest path to that node so don't need
+        #to expand it again
+        for item in frontier.list:
+            if item == current:
+                frontier.list.remove(item)
+        
+        visited.push(current)
+        
+        #if our current state is the goal state then finish searching
+        if problem.isGoalState(current[0]):
+            break
+         
+        #get the adjacent nodes from our current node    
+        successors = problem.getSuccessors(current[0])
+        for position, action, cost in successors:
+            pair = (position, action)
+            #if the node has already been visited or in the frontier, don't do anything
+            if any(position == item[0] for item in visited.list) or any(position == item[0] for item in frontier.list):
+                None
+            else: #else add the successors to the queue
+                frontier.push(pair)
+                current = (current[0], action)
+                parents[position] = current
+    
+    #work backwards to reconstruct the correct path   
+    while current[0] != start:
+        actions.append(parents[current[0]][1])
+        next = parents[current[0]]
+        current = next
+    
+    actions.reverse()
+    
+    return actions
+    
+    util.raiseNotDefined()
+
+def uniformCostSearch(problem: SearchProblem):
+    """Search the node of least total cost first."""
+    "*** YOUR CODE HERE ***"
+    util.raiseNotDefined()
+
+def nullHeuristic(state, problem=None):
+    """
+    A heuristic function estimates the cost from the current state to the nearest
+    goal in the provided SearchProblem.  This heuristic is trivial.
+    """
+    return 0
+
+def aStarSearch(problem: SearchProblem, heuristic=nullHeuristic):
+    """Search the node that has the lowest combined cost and heuristic first."""
+    "*** YOUR CODE HERE ***"
+    util.raiseNotDefined()
+
 #takes a direction and returns its reverse, use for reverse path finding in maze   
 def flipDirection(direction):
     if direction == 'South':
@@ -168,29 +214,6 @@ def directionTaken(positionOne, positionTwo):
         return 'North'
     else: 
         return 'Error'
-    
-def breadthFirstSearch(problem: SearchProblem):
-    """Search the shallowest nodes in the search tree first."""
-    "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
-
-def uniformCostSearch(problem: SearchProblem):
-    """Search the node of least total cost first."""
-    "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
-
-def nullHeuristic(state, problem=None):
-    """
-    A heuristic function estimates the cost from the current state to the nearest
-    goal in the provided SearchProblem.  This heuristic is trivial.
-    """
-    return 0
-
-def aStarSearch(problem: SearchProblem, heuristic=nullHeuristic):
-    """Search the node that has the lowest combined cost and heuristic first."""
-    "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
-
 
 # Abbreviations
 bfs = breadthFirstSearch
