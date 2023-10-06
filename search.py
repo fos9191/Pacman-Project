@@ -95,58 +95,66 @@ def depthFirstSearch(problem: SearchProblem):
     w = Directions.WEST
 
     #get start state
-
+    actions = []
     start = problem.getStartState()
-    current = start
-    current = (current, None)
-    #create frontier
+    current = (start, None)
     frontier = Stack()
-    frontierActions = []
-    moves = []
+    visited = Stack()
     parents = {}
-    visited = Stack()  
-
-    #push the starting place to the frontier
+    
+    
+    #push the first node to the frontier stack
     frontier.push(current)
+    print(start)
     
-    
-    #if stack is not empty
     while not frontier.isEmpty():
-        if problem.isGoalState(current[0]):
-            goalstate = current[0]
-            break
-            
+        #take the next node from the frontier and put it in the visited list
         current = frontier.pop()
-        visited.push(current[0])        
+        visited.push(current)
         
-        #get the adjacent nodes from current and add them to the frontier
-        successors = problem.getSuccessors(current[0])
-        
-        for state, action, cost in successors:
-            pair = (state, action)
-            
-            if state not in visited.list:
-                frontier.push(pair)   
-                parents[state] = current[0] 
-        
-    moves.append(goalstate)
-    while goalstate != start:
-        action = parents[goalstate]
-        moves.append(action)
-        goalstate = parents[goalstate]
-    
-    print(moves)
-    for i in range(0, len(moves)):
-        if i != len(moves) - 1:
-            next = i + 1
-        frontierActions.append(directionTaken(moves[next], moves[i]))
-    
-    frontierActions.reverse()
-    frontierActions.pop(0) # remove the null from the start of frontier actions
-        
-    return frontierActions
+        #if we are at the goal state, finish searching
+        if problem.isGoalState(current[0]):
+            goal = current[0]
+            break
 
+        #find its successors. if any are not in the visited list then add them to the frontier
+        successors = problem.getSuccessors(current[0])
+
+        #if the successors are not yet in visited, add them
+        for position, action, cost in successors:
+            pair = (position, action)
+            #checks if node / square is already explored
+            if any(position == item[0] for item in visited.list):
+                None # do nothing
+            else: #if its not explored its pushed to the frontier and its parent recorded
+                frontier.push(pair)
+                current = (current[0], action)
+                parents[position] = current
+    
+    #we have now found the goal, track back through the maze creating the path for pacman to follow
+    while current[0] != start:
+        actions.append(parents[current[0]][1])
+        next = parents[current[0]]
+        current = next
+    
+    #reverse the path so it is from the start to the finish
+    actions.reverse() 
+        
+    return actions
     util.raiseNotDefined()
+    
+#takes a direction and returns its reverse, use for reverse path finding in maze   
+def flipDirection(direction):
+    if direction == 'South':
+        return 'North'
+    elif direction == 'North':
+        return 'South'
+    elif direction == 'East':
+        return 'West'
+    elif direction == 'West':
+        return 'East'
+    else:
+        return 'Error'
 
 def directionTaken(positionOne, positionTwo):
     """Takes two positions from the maze and returns the direction from positionOne -> positionTwo"""
