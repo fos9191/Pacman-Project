@@ -174,7 +174,34 @@ def breadthFirstSearch(problem: SearchProblem):
 
 def uniformCostSearch(problem: SearchProblem):
     """Search the node of least total cost first."""
-    "*** YOUR CODE HERE ***"
+    startState = problem.getStartState()
+    frontier = PriorityQueue()
+    reached = []    
+    
+    #create the first node
+    startNode = (startState, [], 0)
+    frontier.push(startNode, 0)
+    
+    #while we haven't explored the whole maze
+    while not frontier.isEmpty():
+        #take the first node from frontier
+        node = frontier.pop()
+        
+        #if it is the goal state then finish searching
+        if problem.isGoalState(node[0]):
+            return node[1]
+        
+        #if we havn't reached this node before
+        if node[0] not in reached:
+            reached.append(node[0])
+            
+            successors = problem.getSuccessors(node[0])
+            
+            #create nodes for each of the successors, adding them to the frontier
+            for child, action, cost in successors:
+                childNode = (child, node[1] + [action], node[2] + cost)
+                frontier.push(childNode, childNode[2])           
+    
     util.raiseNotDefined()
 
 def nullHeuristic(state, problem=None):
