@@ -120,8 +120,7 @@ def depthFirstSearch(problem: SearchProblem):
     return actions
     util.raiseNotDefined()
 
-    
-def breadthFirstSearch(problem: SearchProblem):
+def oldbreadthFirstSearch(problem: SearchProblem):
     frontier = Queue()
     visited = Queue()
     parents = {}
@@ -169,7 +168,34 @@ def breadthFirstSearch(problem: SearchProblem):
     actions.reverse()
     
     return actions
+
+def breadthFirstSearch(problem: SearchProblem):
+    startState = problem.getStartState()
+    frontier = Queue()
+    reached = []
     
+    #create first node, push it to the frontier
+    startNode = (startState, [], 0)
+    frontier.push(startNode)
+    
+    #while we are still searching
+    while not frontier.isEmpty():
+        #take the first node from frontier queue
+        node = frontier.pop() 
+        
+        #if it is the goal state then return the path to that state
+        if problem.isGoalState(node[0]):
+            return node[1]
+        
+        #else add its neighbours to the queue, expanding the frontier
+        if node[0] not in reached:
+            reached.append(node[0])
+            
+            successors = problem.getSuccessors(node[0])
+            for child, action, cost in successors:
+                childNode = (child, node[1] + [action], 0)
+                frontier.push(childNode)
+                
     util.raiseNotDefined()
 
 def uniformCostSearch(problem: SearchProblem):
