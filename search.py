@@ -204,6 +204,7 @@ def uniformCostSearch(problem: SearchProblem):
     
     util.raiseNotDefined()
 
+
 def nullHeuristic(state, problem=None):
     """
     A heuristic function estimates the cost from the current state to the nearest
@@ -213,34 +214,32 @@ def nullHeuristic(state, problem=None):
 
 def aStarSearch(problem: SearchProblem, heuristic=nullHeuristic):
     """Search the node that has the lowest combined cost and heuristic first."""
-    "*** YOUR CODE HERE ***"
+    frontier = PriorityQueue()
+    reached = []
+    startState = problem.getStartState()
+    
+    #start node is of the form: position, path to that position, cost of that path
+    startNode = (startState, [], 0)
+    frontier.push(startNode, heuristic(startState, problem))
+    
+    while not frontier.isEmpty():
+        #take the first node from frontier
+        node = frontier.pop()
+        
+        if problem.isGoalState(node[0]):
+            return node[1] # return the path to get to that (goal) node
+        
+        if node[0] not in reached:
+            reached.append(node[0])
+            
+            successors = problem.getSuccessors(node[0])
+            
+            #create nodes for each of the successors, adding them to the frontier
+            for child, action, cost in successors:
+                childNode = (child, node[1] + [action], node[2] + cost + heuristic(child, problem) - heuristic(node[0], problem))
+                frontier.push(childNode, childNode[2])
+
     util.raiseNotDefined()
-
-#takes a direction and returns its reverse, use for reverse path finding in maze   
-def flipDirection(direction):
-    if direction == 'South':
-        return 'North'
-    elif direction == 'North':
-        return 'South'
-    elif direction == 'East':
-        return 'West'
-    elif direction == 'West':
-        return 'East'
-    else:
-        return 'Error'
-
-def directionTaken(positionOne, positionTwo):
-    """Takes two positions from the maze and returns the direction from positionOne -> positionTwo"""
-    if (positionOne[0] - positionTwo[0] == 1):
-        return 'West'
-    elif (positionOne[0] - positionTwo[0] == -1):
-        return 'East'
-    elif (positionOne[1] - positionTwo[1] == 1):
-        return 'South'
-    elif (positionOne[1] - positionTwo[1] == -1):
-        return 'North'
-    else: 
-        return 'Error'
 
 # Abbreviations
 bfs = breadthFirstSearch
