@@ -175,6 +175,7 @@ def breadthFirstSearch(problem: SearchProblem):
     reached = []
     
     #create first node, push it to the frontier
+    #node is of the form start state, path to get to where it is, cost of path
     startNode = (startState, [], 0)
     frontier.push(startNode)
     
@@ -182,7 +183,6 @@ def breadthFirstSearch(problem: SearchProblem):
     while not frontier.isEmpty():
         #take the first node from frontier queue
         node = frontier.pop() 
-        
         #if it is the goal state then return the path to that state
         if problem.isGoalState(node[0]):
             return node[1]
@@ -190,10 +190,9 @@ def breadthFirstSearch(problem: SearchProblem):
         #else add its neighbours to the queue, expanding the frontier
         if node[0] not in reached:
             reached.append(node[0])
-            
             successors = problem.getSuccessors(node[0])
             for child, action, cost in successors:
-                childNode = (child, node[1] + [action], 0)
+                childNode = (child, node[1] + [action], cost)
                 frontier.push(childNode)
                 
     util.raiseNotDefined()
