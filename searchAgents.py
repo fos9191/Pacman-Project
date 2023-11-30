@@ -35,6 +35,7 @@ Good luck and happy searching!
 """
 
 from typing import List, Tuple, Any
+from util import Stack, Queue, PriorityQueue
 from game import Directions
 from game import Agent
 from game import Actions
@@ -410,26 +411,50 @@ def cornersHeuristic(state: Any, problem: CornersProblem):
     x,y = currentPosition
     cornersLeft = []
     distanceToCornersLeft = []
+    amount = 0
     
     for i in range(len(currentCorners)):
         if currentCorners[i] == 0:
             cornersLeft.append(i)
+            amount += 1
             
     #we now have cornersLeft with the position of which corners are left
     xy1 = currentPosition
     for i in cornersLeft:
         xy2 = problem.corners[i] # xy2 will be the x,y coords of a remaining corner
-        #find distance to it, atm ignore walls
-        distance =  ( (xy1[0] - xy2[0]) ** 2 + (xy1[1] - xy2[1]) ** 2 ) ** 0.5
+        distance = abs(xy1[0] - xy2[0]) + abs(xy1[1] - xy2[1])
         distanceToCornersLeft.append(distance)
-        print("current corner", problem.corners[i])
-        print("current position", currentPosition, "distance", distance)
-        print("distancetocorner", distanceToCornersLeft)
     
-    ### NEED TO FIND HEURISTIC TO GOAL STATE, NOT JUST A SINGLE CORNER ###
-    #return ( (xy1[0] - xy2[0]) ** 2 + (xy1[1] - xy2[1]) ** 2 ) ** 0.5
+    distanceBetween = 0
     
-    return 0 # Default to trivial solution
+    #when there are two or four corners left, find the distance between the first two corners (in the case of all 4)
+    #or the two remaining in the case of 2 corners left
+    if len(cornersLeft) == 4 or len(cornersLeft) == 2:
+        xy1 = problem.corners[cornersLeft[0]]
+        xy2 = problem.corners[cornersLeft[1]]
+        distanceBetween = abs(xy1[0] - xy2[0]) + abs(xy1[1] - xy2[1])
+    
+    #if there are three corners left, we want to check the arrangement of corners to optimise the heuristic
+    if len(cornersLeft) == 3:
+        #if the first (top-left) corner is missing then we want to calculate the distance between top right 
+        #and botttom right
+        if cornersLeft[0] != 1:
+            xy1 = problem.corners[cornersLeft[0]]
+            xy2 = problem.corners[cornersLeft[2]]
+        #if we still must visit the top left corner then we want to calculate the distance between that and 
+        #the top-right corner
+        else:
+            xy1 = problem.corners[cornersLeft[0]]
+            xy2 = problem.corners[cornersLeft[1]]
+        distanceBetween = abs(xy1[0] - xy2[0]) + abs(xy1[1] - xy2[1])
+                  
+    if distanceToCornersLeft != []:
+        #returns the euclidian distance to the closest corner, plus the distance to the next corner after that
+        return min(distanceToCornersLeft) + distanceBetween 
+    if currentPosition in problem.corners:
+        return 0
+    
+    else: return 1
 
 class AStarCornersAgent(SearchAgent):
     "A SearchAgent for FoodSearchProblem using A* and your cornersHeuristic"
@@ -492,6 +517,7 @@ class AStarFoodSearchAgent(SearchAgent):
     def __init__(self):
         self.searchFunction = lambda prob: search.aStarSearch(prob, foodHeuristic)
         self.searchType = FoodSearchProblem
+        
 
 def foodHeuristic(state: Tuple[Tuple, List[List]], problem: FoodSearchProblem):
     """
@@ -521,9 +547,54 @@ def foodHeuristic(state: Tuple[Tuple, List[List]], problem: FoodSearchProblem):
     Subsequent calls to this heuristic can access
     problem.heuristicInfo['wallCount']
     """
-    position, foodGrid = state
+    pacmanPos, foodGrid = state
     "*** YOUR CODE HERE ***"
-    return 0
+    
+    gameState = problem.startingGameState
+    width = foodGrid.width
+    height = foodGrid.height
+    smallestDistance = 999999
+    longestDistance = 0
+    amountOfFood = 0
+    
+    for w in range(width):
+        for h in range(height):
+            #if there is food in that position
+            if foodGrid[w][h] == True:
+                amountOfFood += 1
+                #distance = mazeDistance(pacmanPos, (w,h), gameState)                
+                
+                #if there are 3 or more pieces of food, check 3 pieces of food
+                if amountOfFood > 2:
+                    thirdPosition = (w,h)
+                    
+                #find the euclidian distance between pacman and the food
+                distance = abs(pacmanPos[0] - w) + abs(pacmanPos[1] - h)
+                
+                if distance < smallestDistance:
+                    smallestDistance = distance
+                    smallestPosition = (w,h)
+                if distance > longestDistance:
+                    longestDistance = distance
+                    longestPosition = (w,h)
+                
+    #to ensure the heuristic is consistent
+    if smallestDistance == 999999 or longestDistance == 0:
+        heuristic = 0
+    
+    #if we have more than 2 food dots then add the amount of remaining dots
+    elif amountOfFood > 2:
+        #if our third food point we have saved is the closest or furthest then just treat it as if there are only 2 food left
+        if smallestPosition == thirdPosition or longestPosition == thirdPosition:
+            heuristic = smallestDistance + abs(smallestPosition[0] - longestPosition[0]) + abs(smallestPosition[1] - longestPosition[1])
+        else:
+            heuristic = smallestDistance + abs(smallestPosition[0] - longestPosition[0]) + abs(smallestPosition[1] - longestPosition[1]) + amountOfFood - 2
+    
+    #if we have 2 dots of food             
+    else: 
+        heuristic = smallestDistance + abs(smallestPosition[0] - longestPosition[0]) + abs(smallestPosition[1] - longestPosition[1])      
+            
+    return heuristic
 
 class ClosestDotSearchAgent(SearchAgent):
     "Search for all food using a sequence of searches"
@@ -554,7 +625,29 @@ class ClosestDotSearchAgent(SearchAgent):
         problem = AnyFoodSearchProblem(gameState)
 
         "*** YOUR CODE HERE ***"
+        #BFS adapted to fit here
+        frontier = Queue()
+        reached = []
+        print(startPosition)
+        startNode = (startPosition, [], 0)
+        frontier.push(startNode)
+        
+        while not frontier.isEmpty():
+            node = frontier.pop()
+            
+            if problem.isGoalState(node[0]):
+                return node[1]
+            
+            if node[0] not in reached:
+                reached.append(node[0])
+                successors = problem.getSuccessors(node[0])
+                for child, action, cost in successors:
+                    childNode = (child, node[1] + [action], cost)
+                    frontier.push(childNode)
+        
+        
         util.raiseNotDefined()
+
 
 class AnyFoodSearchProblem(PositionSearchProblem):
     """
@@ -590,6 +683,12 @@ class AnyFoodSearchProblem(PositionSearchProblem):
         x,y = state
 
         "*** YOUR CODE HERE ***"
+        currentFood = self.food
+        if currentFood[x][y] == True:
+            return True
+        else:
+            return False
+        
         util.raiseNotDefined()
 
 def mazeDistance(point1: Tuple[int, int], point2: Tuple[int, int], gameState: pacman.GameState) -> int:

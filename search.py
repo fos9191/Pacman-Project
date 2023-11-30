@@ -120,6 +120,7 @@ def depthFirstSearch(problem: SearchProblem):
     return actions
     util.raiseNotDefined()
 
+#DONT USE
 def oldbreadthFirstSearch(problem: SearchProblem):
     frontier = Queue()
     visited = Queue()
